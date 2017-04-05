@@ -12,130 +12,14 @@ using System.Threading;
 
 namespace AdaptiveGrayscaleHistogram
 {
-    enum GrayscaleMode
-    {
-        Async,
-        Sync
-    }
-
     public partial class Form1 : Form
     {
         private Bitmap initialBitmap = null;
-        private bool shouldReset = false;
-        private GrayscaleMode grayscaleMode = GrayscaleMode.Async;
         
 
         public Form1()
         {
             InitializeComponent();
-            comboBoxWorker.SelectedIndex = 0;
-        }
-
-        private void loadImageToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (backgroundWorker1.IsBusy)
-                backgroundWorker1.CancelAsync();
-
-            OpenFileDialog selectFile = new OpenFileDialog();
-            if (selectFile.ShowDialog() == DialogResult.Cancel)
-                return;
-
-            using (Stream imageStream = selectFile.OpenFile())
-            {
-                try
-                {
-                    initialBitmap = new Bitmap(imageStream);
-                } catch
-                {
-                    MessageBox.Show("Cannot load image");
-                    return;
-                }
-            }
-
-
-            pictureBox.Image = new Bitmap(initialBitmap);
-            resetToolStripMenuItem.Enabled = true;
-            grayscaleToolStripMenuItem.Enabled = true;
-            this.MaximumSize = initialBitmap.Size;
-            this.Size = initialBitmap.Size;
-        }
-
-        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            grayscaleToolStripMenuItem.Enabled = true;
-            if (grayscaleMode == GrayscaleMode.Sync)
-            {
-                shouldReset = true;
-                pictureBox.Image = new Bitmap(initialBitmap);
-            }
-            else if (grayscaleMode == GrayscaleMode.Async)
-            {
-                
-                if (backgroundWorker1.IsBusy)
-                {
-                    backgroundWorker1.CancelAsync();
-                    progressBar.Value = 0;
-                }
-                else
-                {
-                    if (backgroundWorker1.CancellationPending)
-                        return;
-
-                    
-                    pictureBox.Image = new Bitmap(initialBitmap);
-                }
-            }
-            
-        }
-
-        private GrayscaleMode ParseGrayscaleMode()
-        {
-            if (comboBoxWorker.SelectedIndex == 0)
-                return GrayscaleMode.Sync;
-            else
-                return GrayscaleMode.Async;
-        }
-
-        private void grayscaleToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            grayscaleToolStripMenuItem.Enabled = false;
-            grayscaleMode = ParseGrayscaleMode();
-            
-            if (grayscaleMode == GrayscaleMode.Sync)
-            {
-                DoGrayscaleSync();
-                grayscaleToolStripMenuItem.Enabled = true;
-            }
-            else if (grayscaleMode == GrayscaleMode.Async)
-            {
-                if (backgroundWorker1.IsBusy)
-                    return;
-
-                pictureBox.Image = new Bitmap(initialBitmap);
-                backgroundWorker1.RunWorkerAsync();
-            }
-        }
-
-        private void DoGrayscaleSync()
-        {
-            shouldReset = false;
-            pictureBox.Image = initialBitmap;
-            Bitmap bm = pictureBox.Image as Bitmap;
-
-            for (int x = 0; x < bm.Width; x++)
-            {
-                for (int y = 0; y < bm.Height; y++)
-                {
-                    if (shouldReset)
-                    {
-                        shouldReset = false;
-                        return;
-                    }
-
-                    Color baseColor = bm.GetPixel(x, y);
-                    bm.SetPixel(x, y, GetGrayscaleColor(baseColor));
-                }
-            }
         }
 
         private Color GetGrayscaleColor(Color baseColor)
@@ -195,6 +79,17 @@ namespace AdaptiveGrayscaleHistogram
                     bm.SetPixel(x, y, info.bm.GetPixel(x, y));
             }
             pictureBox.Image = bm;
+
+            // Weird stuff with synchronizing the progress bar
+            if (e.ProgressPercentage == progressBar.Maximum)
+            {
+                progressBar.Maximum = e.ProgressPercentage + 1;
+                progressBar.Value = e.ProgressPercentage + 1;
+                progressBar.Maximum = e.ProgressPercentage;
+            }
+            else
+                progressBar.Value = e.ProgressPercentage + 1;
+                
             progressBar.Value = e.ProgressPercentage;
         }
 
@@ -205,7 +100,72 @@ namespace AdaptiveGrayscaleHistogram
                 pictureBox.Image = e.Result as Bitmap;
                 progressBar.Value = 100;
             }
+
             grayscaleToolStripMenuItem.Enabled = true;
+            adaptiveToolStripMenuItem.Enabled = true;
+            histogramToolStripMenuItem.Enabled = true;
+        }
+
+        private void loadImageToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            if (backgroundWorker1.IsBusy)
+                backgroundWorker1.CancelAsync();
+
+            OpenFileDialog selectFile = new OpenFileDialog();
+            if (selectFile.ShowDialog() == DialogResult.Cancel)
+                return;
+
+            using (Stream imageStream = selectFile.OpenFile())
+            {
+                try
+                {
+                    initialBitmap = new Bitmap(imageStream);
+                }
+                catch
+                {
+                    MessageBox.Show("Cannot load image");
+                    return;
+                }
+            }
+
+
+            pictureBox.Image = new Bitmap(initialBitmap);
+            resetToolStripMenuItem.Enabled = true;
+            grayscaleToolStripMenuItem.Enabled = true;
+            adaptiveToolStripMenuItem.Enabled = true;
+            histogramToolStripMenuItem.Enabled = true;
+            this.MaximumSize = initialBitmap.Size;
+            this.Size = initialBitmap.Size;
+        }
+
+        private void resetToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            if (backgroundWorker1.IsBusy)
+            {
+                backgroundWorker1.CancelAsync();
+                progressBar.Value = 0;
+            }
+            else
+            {
+                if (backgroundWorker1.CancellationPending)
+                    return;
+
+                pictureBox.Image = new Bitmap(initialBitmap);
+                progressBar.Value = 0;
+            }
+        }
+
+        private void grayscaleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            grayscaleToolStripMenuItem.Enabled = false;
+            adaptiveToolStripMenuItem.Enabled = false;
+            // histogramToolStripMenuItem.Enabled = false;
+
+            if (backgroundWorker1.IsBusy)
+                return;
+
+            pictureBox.Image = new Bitmap(initialBitmap);
+            backgroundWorker1.RunWorkerAsync();
         }
     }
 }
