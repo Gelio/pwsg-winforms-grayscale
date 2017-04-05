@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><META http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body>
+
+<div>
+<h2>Adaptive grayscale + Histogram</h2>
+	<p>Celem jest zaimplementowanie aplikacji umożliwiającej załadowanie obrazka z pliku, a następnie zastosowanie na nim filtru szarości.</p>
+	<h3>Laboratorium</h3>
+	<ul>
+		<li>Wszystkie operacje należy wykonać samodzielnie, bez używania zewnętrznych bibliotek albo metod.</li>
+		<li>Wygląd aplikacji:
+		<ul>
+			<li>Główną część aplikacji stanowi załadowany obrazek, pasek menu oraz progress bar. Aplikacja powinna dostosowywać swój rozmiar do obrazka.
+			Nie powinno się dać zwiększyć wielkości okna po załadowaniu obrazka.</li>
+			<li>Na pasku menu mamy 3 buttony oraz jeden drop down menu. Odpowiadają one odpowiednio za:</li>
+			<li>Otworzenie obrazka</li>
+			<li>Zresetowanie obrazka - obraz wraca do postaci oryginalnej. Możliwe użycie w czasie działania dowolnego algorytmu.</li>
+			<li>Zastosowanie filtru szarości. Wartość RGB każego piksela wyznacza się wzorem c.R * 0.3 + c.G * 0.59 + c.B * 0.11.</li>
+			<li>Wybranie rodzaju działania filtru - Synchronicznego bądź asynchronicznego. W przypadku asynchronicznym praca powinna odbywać się na osobnym
+			wątku - aplikacja powinna na bieżąco odświerzać obrazek, a progress bar powinien być aktualizowany. W celu "zwolnienia" aplikacji proszę opóźnić
+			pracę drugiego wątku.</li>
+			<li>W przypadku braku opisu proszę wzorować się na aplikcji wzorcowej - jednak nie należy wzorować się na potencjalnych bugach</li>
+		</ul>
+		</li>
+		<li>
+		</li>
+		<li>Podpowiedzi:
+		<ul>
+			<li>OpenFileDialog</li>
+			<li>BackgroundWorker, BackgroundWorker.IsBusy, BackgroundWorker.CancelAsync, BackgroundWorker.CancellationPending</li>
+			<li>Bitmap.GetPixel(), Bitmap.SetPixel(), Color.FromArgb()</li>
+		</ul>
+		</li>
+		<li>Punktacja:
+		<ul>
+			<li>Poprawne działanie okna. Załadowanie obrazka, zastosowanie synchronicznego filtru - 4 punkty.</li>
+			<li>Zastosowanie asynchronicznego filtru - 4 punkty.</li>
+			<li>W przypadku scrashowania aplikacji - 0 punktów z obu części.<li>
+		</ul>
+		</li>
+	</ul>
+	
+	<h3>Część domowa</h3>
+	<ul>
+	<li>Warunkiem koniecznym sprawdzenia części domowej jest wykonanie w całości części laboratoryjnej.</li>
+	<li>Wszystkie operacje należy wykonać samodzielnie, bez używania zewnętrznych bibliotek albo metod.</li>
+	<li>Dodatkowa, punktowana funkcjonalność:</li>
+	<li>Usunięcie górnego menu. Wszelka funkcjonalność powinna być dostępna po kliknięciu prawym przyciskiem myszy w oknie aplikacji. - 2 pkt</li>
+	<li>Dodanie adaptacyjnego filtru szarości: W każdym kroku algorytmu dzielimy obraz na mniejsze prostokąty oraz kolorujemy go kolorem jednego piksela.
+	Postępujemy tak aż do sytuacji, gdy prostokąt jest pojedyńczym pikselem. - 4 pkt.</li>
+	<li>Stworzenie okna umożliwiającego przekazywanie skrajnych wartości kolorów. Wszelkie zmiany powinny być widoczne w głównym oknie bez konieczności
+	zamknięcia nowego okna. Zmiany wartości należy wypisać do Outputu. Po ponownyn otworzeniu okna, wartości powinny być zgodne z poprzednimi. - 2 pkt.</li>
+	<li>Dodanie funkcjonalności histogramu - gdy kolor nie jest w zakresie wyznaczonym w oknie, należy go zmienić do bliższego ograniczenia.
+	Aktualizacja obrazu powinna być wykonywana adaptacyjnie, rozpoczynana na nowo przy każdej zmianie ograniczeń. - 4 pkt.</li>
+	<li>Podpowiedzi:
+		<ul>
+			<li>ContextMenuStrip</li>
+			<li>TrackBar, ValueChanged += new System.EventHandler</li>
+		</ul>
+	</li>
+</ul>
+</div></body></html>
