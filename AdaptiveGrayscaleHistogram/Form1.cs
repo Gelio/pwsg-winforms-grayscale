@@ -33,6 +33,9 @@ namespace AdaptiveGrayscaleHistogram
 
         private void loadImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (backgroundWorker1.IsBusy)
+                backgroundWorker1.CancelAsync();
+
             OpenFileDialog selectFile = new OpenFileDialog();
             if (selectFile.ShowDialog() == DialogResult.Cancel)
                 return;
@@ -50,7 +53,7 @@ namespace AdaptiveGrayscaleHistogram
             }
 
 
-            pictureBox.Image = initialBitmap;
+            pictureBox.Image = new Bitmap(initialBitmap);
             resetToolStripMenuItem.Enabled = true;
             grayscaleToolStripMenuItem.Enabled = true;
             this.MaximumSize = initialBitmap.Size;
@@ -63,20 +66,23 @@ namespace AdaptiveGrayscaleHistogram
             if (grayscaleMode == GrayscaleMode.Sync)
             {
                 shouldReset = true;
-                pictureBox.Image = initialBitmap;
+                pictureBox.Image = new Bitmap(initialBitmap);
             }
             else if (grayscaleMode == GrayscaleMode.Async)
             {
-                if (backgroundWorker1.CancellationPending)
-                    return;
-
-                backgroundWorker1.CancelAsync();
-                progressBar.Value = 0;
-
-                if (!backgroundWorker1.IsBusy)
+                
+                if (backgroundWorker1.IsBusy)
                 {
-                    pictureBox.Image = initialBitmap;
-                    return;
+                    backgroundWorker1.CancelAsync();
+                    progressBar.Value = 0;
+                }
+                else
+                {
+                    if (backgroundWorker1.CancellationPending)
+                        return;
+
+                    
+                    pictureBox.Image = new Bitmap(initialBitmap);
                 }
             }
             
@@ -97,7 +103,8 @@ namespace AdaptiveGrayscaleHistogram
             
             if (grayscaleMode == GrayscaleMode.Sync)
             {
-                StartGrayscaleSync();
+                DoGrayscaleSync();
+                grayscaleToolStripMenuItem.Enabled = true;
             }
             else if (grayscaleMode == GrayscaleMode.Async)
             {
@@ -109,10 +116,10 @@ namespace AdaptiveGrayscaleHistogram
             }
         }
 
-        private void StartGrayscaleSync()
+        private void DoGrayscaleSync()
         {
             shouldReset = false;
-            pictureBox.Image = new Bitmap(initialBitmap);
+            pictureBox.Image = initialBitmap;
             Bitmap bm = pictureBox.Image as Bitmap;
 
             for (int x = 0; x < bm.Width; x++)
@@ -126,26 +133,34 @@ namespace AdaptiveGrayscaleHistogram
                     }
 
                     Color baseColor = bm.GetPixel(x, y);
-                    bm.SetPixel(x, y, grayscaleColor(baseColor));
+                    bm.SetPixel(x, y, GetGrayscaleColor(baseColor));
                 }
             }
         }
 
-        private Color grayscaleColor(Color baseColor)
+        private Color GetGrayscaleColor(Color baseColor)
         {
             int endColor = (int)(baseColor.R * 0.3 + baseColor.G * 0.59 + baseColor.B * 0.11);
             return Color.FromArgb(endColor, endColor, endColor);
         }
 
+        private class ProgressInfo
+        {
+            public Bitmap bm;
+            public int x;
+            public object bgLock = new object();
+        }
+
         private void backgroundWorker1_DoWork_1(object sender, DoWorkEventArgs e)
         {
             Bitmap bm = new Bitmap(initialBitmap);
-            long totalPixels = bm.Width * bm.Height;
-            long currentPixel = 0;
+            int width = bm.Width,
+                height = bm.Height;
+            object bgLock = new object();
 
-            for (int x = 0; x < bm.Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < bm.Height; y++)
+                for (int y = 0; y < height; y++)
                 {
                     if (backgroundWorker1.CancellationPending)
                     {
@@ -153,27 +168,43 @@ namespace AdaptiveGrayscaleHistogram
                         return;
                     }
 
-                    currentPixel++;
-                    Color baseColor = bm.GetPixel(x, y);
-                    bm.SetPixel(x, y, grayscaleColor(baseColor));
+                    lock (bgLock)
+                    {
+                        Color baseColor = bm.GetPixel(x, y);
+                        Color grayscaleColor = GetGrayscaleColor(baseColor);
+                        bm.SetPixel(x, y, GetGrayscaleColor(baseColor));
+                    }
                 }
-                int progress = (int)((double)(currentPixel) / (double)(totalPixels) * 100);
-                backgroundWorker1.ReportProgress(progress, bm);
-                Thread.Sleep(10);
+
+                int progress = Convert.ToInt32((double)((double)(x + 1) * 100 / (double)width));
+                backgroundWorker1.ReportProgress(progress, new ProgressInfo() { bm = bm, x = x, bgLock = bgLock });
+                Thread.Sleep(2);
             }
 
-            pictureBox.Image = bm;
+            e.Result = bm;
         }
 
         private void backgroundWorker1_ProgressChanged_1(object sender, ProgressChangedEventArgs e)
         {
+            ProgressInfo info = e.UserState as ProgressInfo;
+            int x = info.x;
+            Bitmap bm = pictureBox.Image as Bitmap;
+            lock (info.bgLock)
+            {
+                for (int y = 0; y < bm.Height; y++)
+                    bm.SetPixel(x, y, info.bm.GetPixel(x, y));
+            }
+            pictureBox.Image = bm;
             progressBar.Value = e.ProgressPercentage;
-            pictureBox.Image = e.UserState as Image;
         }
 
         private void backgroundWorker1_RunWorkerCompleted_1(object sender, RunWorkerCompletedEventArgs e)
         {
-            progressBar.Value = 100;
+            if (!e.Cancelled)
+            {
+                pictureBox.Image = e.Result as Bitmap;
+                progressBar.Value = 100;
+            }
             grayscaleToolStripMenuItem.Enabled = true;
         }
     }

@@ -99,8 +99,10 @@
             // 
             this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.progressBar.Location = new System.Drawing.Point(0, 239);
+            this.progressBar.MarqueeAnimationSpeed = 1000;
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(414, 23);
+            this.progressBar.Step = 1;
             this.progressBar.TabIndex = 4;
             // 
             // backgroundWorker1
