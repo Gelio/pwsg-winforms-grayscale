@@ -9,6 +9,8 @@ namespace AdaptiveGrayscaleHistogram.Filters
 {
     class GrayscaleFilter : IFilter
     {
+        public int Delay => 5;
+
         public void Apply(Bitmap[] buffers, byte[] bitmapBytes, int bytesPerPixel, int width, int height, Action<int> reportProgress, Func<bool> shouldCancel)
         {
             int currentPixelPosition = 0,

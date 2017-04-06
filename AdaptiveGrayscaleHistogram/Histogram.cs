@@ -12,10 +12,10 @@ namespace AdaptiveGrayscaleHistogram
 {
     public struct HistogramValues
     {
-        public int MinValue { get; private set; }
-        public int MaxValue { get; private set; }
+        public byte MinValue { get; private set; }
+        public byte MaxValue { get; private set; }
 
-        public HistogramValues(int minValue, int maxValue)
+        public HistogramValues(byte minValue, byte maxValue)
         {
             MinValue = minValue;
             MaxValue = maxValue;
@@ -33,7 +33,9 @@ namespace AdaptiveGrayscaleHistogram
 
         private void anyTrackbar_ValueChanged(object sender, EventArgs e)
         {
-            this.ValueChanged?.Invoke(this, new HistogramValues(trackBarBottomValue.Value, trackBarTopValue.Value));
+            byte minValue = Convert.ToByte(trackBarBottomValue.Value),
+                maxValue = Convert.ToByte(trackBarTopValue.Value);
+            this.ValueChanged?.Invoke(this, new HistogramValues(minValue, maxValue));
         }
     }
 }

@@ -28,36 +28,36 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.trackBarTopValue = new System.Windows.Forms.TrackBar();
             this.trackBarBottomValue = new System.Windows.Forms.TrackBar();
+            this.trackBarTopValue = new System.Windows.Forms.TrackBar();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarTopValue)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarBottomValue)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarTopValue)).BeginInit();
             this.SuspendLayout();
-            // 
-            // trackBarTopValue
-            // 
-            this.trackBarTopValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarTopValue.Location = new System.Drawing.Point(12, 17);
-            this.trackBarTopValue.Maximum = 255;
-            this.trackBarTopValue.Name = "trackBarTopValue";
-            this.trackBarTopValue.Size = new System.Drawing.Size(309, 45);
-            this.trackBarTopValue.TabIndex = 0;
-            this.trackBarTopValue.ValueChanged += new System.EventHandler(this.anyTrackbar_ValueChanged);
             // 
             // trackBarBottomValue
             // 
             this.trackBarBottomValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBarBottomValue.Location = new System.Drawing.Point(12, 64);
+            this.trackBarBottomValue.Location = new System.Drawing.Point(12, 17);
             this.trackBarBottomValue.Maximum = 255;
             this.trackBarBottomValue.Name = "trackBarBottomValue";
             this.trackBarBottomValue.Size = new System.Drawing.Size(309, 45);
-            this.trackBarBottomValue.TabIndex = 1;
-            this.trackBarBottomValue.Value = 255;
+            this.trackBarBottomValue.TabIndex = 0;
             this.trackBarBottomValue.ValueChanged += new System.EventHandler(this.anyTrackbar_ValueChanged);
+            // 
+            // trackBarTopValue
+            // 
+            this.trackBarTopValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.trackBarTopValue.Location = new System.Drawing.Point(12, 64);
+            this.trackBarTopValue.Maximum = 255;
+            this.trackBarTopValue.Name = "trackBarTopValue";
+            this.trackBarTopValue.Size = new System.Drawing.Size(309, 45);
+            this.trackBarTopValue.TabIndex = 1;
+            this.trackBarTopValue.Value = 255;
+            this.trackBarTopValue.ValueChanged += new System.EventHandler(this.anyTrackbar_ValueChanged);
             // 
             // label1
             // 
@@ -85,12 +85,12 @@
             this.ClientSize = new System.Drawing.Size(333, 133);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.trackBarBottomValue);
             this.Controls.Add(this.trackBarTopValue);
+            this.Controls.Add(this.trackBarBottomValue);
             this.Name = "Histogram";
             this.Text = "Histogram";
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarTopValue)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarBottomValue)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarTopValue)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -98,8 +98,8 @@
 
         #endregion
 
-        private System.Windows.Forms.TrackBar trackBarTopValue;
         private System.Windows.Forms.TrackBar trackBarBottomValue;
+        private System.Windows.Forms.TrackBar trackBarTopValue;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
     }

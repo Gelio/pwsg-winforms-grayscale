@@ -25,6 +25,8 @@ namespace AdaptiveGrayscaleHistogram
         private Histogram histogram = new Histogram();
         private Filters.IFilter filter = null;
         private HistogramValues histogramValues = new HistogramValues(0, 255);
+        private AutoResetEvent _resetEvent = new AutoResetEvent(false);
+        private bool queuedForRestart = false;
 
 
         public Form1()
@@ -35,8 +37,18 @@ namespace AdaptiveGrayscaleHistogram
 
         private void Histogram_ValueChanged(object sender, HistogramValues e)
         {
+            if (queuedForRestart)
+                return;
+
             if (backgroundWorkerGrayscale.IsBusy)
+            {
                 backgroundWorkerGrayscale.CancelAsync();
+
+                queuedForRestart = true;
+                while (backgroundWorkerGrayscale.IsBusy)
+                    Application.DoEvents();
+                queuedForRestart = false;
+            }
 
             histogramValues = e;
             filter = new Filters.AdaptiveFilter(histogramValues);
@@ -74,7 +86,8 @@ namespace AdaptiveGrayscaleHistogram
                 buffers[currentBuffer].UnlockBits(currentBitmapData);
 
                 backgroundWorkerGrayscale.ReportProgress(progress, buffers[currentBuffer]);
-                Thread.Sleep(5);
+                if (!shouldCancel())
+                    Thread.Sleep(filter.Delay);
             };
 
             filter.Apply(buffers, bitmapBytes, bytesPerPixel, width, height, reportWorkerProgress, shouldCancel);
@@ -114,6 +127,8 @@ namespace AdaptiveGrayscaleHistogram
                 pictureBox.Image = e.Result as Bitmap;
                 SetProgressBarValue(100);
             }
+            else
+                _resetEvent.Set();
 
             grayscaleToolStripMenuItem.Enabled = true;
             adaptiveToolStripMenuItem.Enabled = true;
