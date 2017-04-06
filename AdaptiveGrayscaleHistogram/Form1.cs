@@ -29,24 +29,35 @@ namespace AdaptiveGrayscaleHistogram
             return Color.FromArgb(endColor, endColor, endColor);
         }
 
-        private class ProgressInfo
+        private byte GetGrayscaleColor(byte r, byte g, byte b)
         {
-            public Bitmap bmp;
-            public int x;
-            public object bgLock = new object();
+            return (byte)(r * 0.3 + g * 0.59 + b * 0.11);
         }
 
         private void backgroundWorker1_DoWork_1(object sender, DoWorkEventArgs e)
         {
-            Bitmap bmp = new Bitmap(initialBitmap);
-            int width = bmp.Width,
-                height = bmp.Height;
-            byte[] pixelArray = Array1DFromBitmap(bmp);
-            object bgLock = new object();
+            int buffersCount = 5;
+            Bitmap[] buffers = new Bitmap[buffersCount];
+            for (int i=0; i < buffersCount; i++)
+                buffers[i] = new Bitmap(initialBitmap);
+            int currentBuffer = -1;
 
-            for (int x = 0; x < width; x++)
+            int width = buffers[0].Width,
+                height = buffers[0].Height;
+            Rectangle rect = new Rectangle(0, 0, width, height);
+            byte[] bitmapBytes = Array1DFromBitmap(buffers[0]);
+            int bytesPerPixel = Bitmap.GetPixelFormatSize(buffers[0].PixelFormat) / 8;
+            int currentPixelPosition = 0;
+
+            for (int y = 0; y < height; y++)
             {
-                for (int y = 0; y < height; y++)
+                // Move to the next bitmap
+                currentBuffer = (currentBuffer + 1) % buffersCount;
+
+                // Lock bits
+                BitmapData currentBitmapData = buffers[currentBuffer].LockBits(rect, ImageLockMode.ReadWrite, buffers[currentBuffer].PixelFormat);
+
+                for (int x = 0; x < width; x++, currentPixelPosition += bytesPerPixel)
                 {
                     if (backgroundWorker1.CancellationPending)
                     {
@@ -54,20 +65,25 @@ namespace AdaptiveGrayscaleHistogram
                         return;
                     }
 
-                    //lock (bgLock)
-                    //{
-                        Color baseColor = bmp.GetPixel(x, y);
-                        Color grayscaleColor = GetGrayscaleColor(baseColor);
-                        bmp.SetPixel(x, y, GetGrayscaleColor(baseColor));
-                    //}
+                    
+                    byte grayscaleColor = GetGrayscaleColor(bitmapBytes[currentPixelPosition], bitmapBytes[currentPixelPosition + 1], bitmapBytes[currentPixelPosition + 2]);
+                    bitmapBytes[currentPixelPosition] = grayscaleColor;
+                    bitmapBytes[currentPixelPosition + 1] = grayscaleColor;
+                    bitmapBytes[currentPixelPosition + 2] = grayscaleColor;
                 }
 
-                int progress = Convert.ToInt32((double)((double)(x + 1) * 100 / (double)width));
-                backgroundWorker1.ReportProgress(progress, new ProgressInfo() { bmp = BitmapFromArray1D(pixelArray, width, height, bmp.PixelFormat), x = x, bgLock = bgLock });
-                Thread.Sleep(2);
+                System.Runtime.InteropServices.Marshal.Copy(bitmapBytes, 0, currentBitmapData.Scan0, bitmapBytes.Length);
+
+                // Unlock bits
+                buffers[currentBuffer].UnlockBits(currentBitmapData);
+                
+
+                int progress = Convert.ToInt32((double)((double)(y + 1) * 100 / (double)height));
+                backgroundWorker1.ReportProgress(progress, buffers[currentBuffer]);
+                Thread.Sleep(1);
             }
 
-            e.Result = bmp;
+            e.Result = buffers[currentBuffer];
         }
 
         private static byte[] Array1DFromBitmap(Bitmap bmp)
@@ -90,32 +106,9 @@ namespace AdaptiveGrayscaleHistogram
             return bytes;
         }
 
-        private static Bitmap BitmapFromArray1D(byte[] bytes, int width, int height, PixelFormat pixelFormat)
-        {
-            Bitmap grayBmp = new Bitmap(width, height, pixelFormat);
-            Rectangle grayRect = new Rectangle(0, 0, grayBmp.Width, grayBmp.Height);
-            BitmapData grayData = grayBmp.LockBits(grayRect, ImageLockMode.ReadWrite, grayBmp.PixelFormat);
-            IntPtr grayPtr = grayData.Scan0;
-
-            int grayBytes = grayData.Stride * grayBmp.Height;
-
-            System.Runtime.InteropServices.Marshal.Copy(bytes, 0, grayPtr, grayBytes);
-
-            grayBmp.UnlockBits(grayData);
-            return grayBmp;
-        }
-
         private void backgroundWorker1_ProgressChanged_1(object sender, ProgressChangedEventArgs e)
         {
-            ProgressInfo info = e.UserState as ProgressInfo;
-            int x = info.x;
-            //Bitmap bm = pictureBox.Image as Bitmap;
-            //lock (info.bgLock)
-            //{
-            //    for (int y = 0; y < bm.Height; y++)
-            //        bm.SetPixel(x, y, info.bm.GetPixel(x, y));
-            //}
-            pictureBox.Image = info.bmp;
+            pictureBox.Image = e.UserState as Bitmap;
 
             SetProgressValue(e.ProgressPercentage);
         }
