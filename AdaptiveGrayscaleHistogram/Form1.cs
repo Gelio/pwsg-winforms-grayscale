@@ -23,18 +23,7 @@ namespace AdaptiveGrayscaleHistogram
             InitializeComponent();
         }
 
-        private Color GetGrayscaleColor(Color baseColor)
-        {
-            int endColor = (int)(baseColor.R * 0.3 + baseColor.G * 0.59 + baseColor.B * 0.11);
-            return Color.FromArgb(endColor, endColor, endColor);
-        }
-
-        private byte GetGrayscaleColor(byte r, byte g, byte b)
-        {
-            return (byte)(r * 0.3 + g * 0.59 + b * 0.11);
-        }
-
-        private void backgroundWorker1_DoWork_1(object sender, DoWorkEventArgs e)
+        private void backgroundWorkerGrayscale_DoWork(object sender, DoWorkEventArgs e)
         {
             int buffersCount = 5;
             Bitmap[] buffers = new Bitmap[buffersCount];
@@ -45,33 +34,34 @@ namespace AdaptiveGrayscaleHistogram
             int width = buffers[0].Width,
                 height = buffers[0].Height;
             Rectangle rect = new Rectangle(0, 0, width, height);
-            byte[] bitmapBytes = Array1DFromBitmap(buffers[0]);
+            byte[] bitmapBytes = GrayscaleHelpers.Array1DFromBitmap(buffers[0]);
             int bytesPerPixel = Bitmap.GetPixelFormatSize(buffers[0].PixelFormat) / 8;
             int currentPixelPosition = 0;
 
             for (int y = 0; y < height; y++)
             {
-                // Move to the next bitmap
+                // Move to the next buffer
                 currentBuffer = (currentBuffer + 1) % buffersCount;
-
-                // Lock bits
-                BitmapData currentBitmapData = buffers[currentBuffer].LockBits(rect, ImageLockMode.ReadWrite, buffers[currentBuffer].PixelFormat);
 
                 for (int x = 0; x < width; x++, currentPixelPosition += bytesPerPixel)
                 {
-                    if (backgroundWorker1.CancellationPending)
+                    if (backgroundWorkerGrayscale.CancellationPending)
                     {
                         e.Cancel = true;
                         return;
                     }
 
                     
-                    byte grayscaleColor = GetGrayscaleColor(bitmapBytes[currentPixelPosition], bitmapBytes[currentPixelPosition + 1], bitmapBytes[currentPixelPosition + 2]);
+                    byte grayscaleColor = GrayscaleHelpers.GetGrayscaleColor(bitmapBytes[currentPixelPosition], bitmapBytes[currentPixelPosition + 1], bitmapBytes[currentPixelPosition + 2]);
                     bitmapBytes[currentPixelPosition] = grayscaleColor;
                     bitmapBytes[currentPixelPosition + 1] = grayscaleColor;
                     bitmapBytes[currentPixelPosition + 2] = grayscaleColor;
                 }
 
+                // Lock bits
+                BitmapData currentBitmapData = buffers[currentBuffer].LockBits(rect, ImageLockMode.ReadWrite, buffers[currentBuffer].PixelFormat);
+
+                // Copy bytes to current buffer
                 System.Runtime.InteropServices.Marshal.Copy(bitmapBytes, 0, currentBitmapData.Scan0, bitmapBytes.Length);
 
                 // Unlock bits
@@ -79,41 +69,21 @@ namespace AdaptiveGrayscaleHistogram
                 
 
                 int progress = Convert.ToInt32((double)((double)(y + 1) * 100 / (double)height));
-                backgroundWorker1.ReportProgress(progress, buffers[currentBuffer]);
+                backgroundWorkerGrayscale.ReportProgress(progress, buffers[currentBuffer]);
                 Thread.Sleep(1);
             }
 
             e.Result = buffers[currentBuffer];
         }
 
-        private static byte[] Array1DFromBitmap(Bitmap bmp)
-        {
-            if (bmp == null) throw new NullReferenceException("Bitmap is null");
-
-            Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
-            BitmapData data = bmp.LockBits(rect, ImageLockMode.ReadWrite, bmp.PixelFormat);
-            IntPtr ptr = data.Scan0;
-
-            //declare an array to hold the bytes of the bitmap
-            int numBytes = data.Stride * bmp.Height;
-            byte[] bytes = new byte[numBytes];
-
-            //copy the RGB values into the array
-            System.Runtime.InteropServices.Marshal.Copy(ptr, bytes, 0, numBytes);
-
-            bmp.UnlockBits(data);
-
-            return bytes;
-        }
-
-        private void backgroundWorker1_ProgressChanged_1(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorkerGrayscale_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             pictureBox.Image = e.UserState as Bitmap;
 
-            SetProgressValue(e.ProgressPercentage);
+            SetProgressBarValue(e.ProgressPercentage);
         }
 
-        private void SetProgressValue(int value)
+        private void SetProgressBarValue(int value)
         {
             // Weird stuff with synchronizing the progress bar
             if (value == progressBar.Maximum)
@@ -128,12 +98,12 @@ namespace AdaptiveGrayscaleHistogram
             progressBar.Value = value;
         }
 
-        private void backgroundWorker1_RunWorkerCompleted_1(object sender, RunWorkerCompletedEventArgs e)
+        private void backgroundWorkerGrayscale_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (!e.Cancelled)
             {
                 pictureBox.Image = e.Result as Bitmap;
-                SetProgressValue(100);
+                SetProgressBarValue(100);
             }
 
             grayscaleToolStripMenuItem.Enabled = true;
@@ -143,8 +113,8 @@ namespace AdaptiveGrayscaleHistogram
 
         private void loadImageToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            if (backgroundWorker1.IsBusy)
-                backgroundWorker1.CancelAsync();
+            if (backgroundWorkerGrayscale.IsBusy)
+                backgroundWorkerGrayscale.CancelAsync();
 
             OpenFileDialog selectFile = new OpenFileDialog();
             if (selectFile.ShowDialog() == DialogResult.Cancel)
@@ -164,7 +134,7 @@ namespace AdaptiveGrayscaleHistogram
             }
 
 
-            pictureBox.Image = new Bitmap(initialBitmap);
+            pictureBox.Image = initialBitmap;
             resetToolStripMenuItem.Enabled = true;
             grayscaleToolStripMenuItem.Enabled = true;
             adaptiveToolStripMenuItem.Enabled = true;
@@ -175,18 +145,18 @@ namespace AdaptiveGrayscaleHistogram
 
         private void resetToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorkerGrayscale.IsBusy)
             {
-                backgroundWorker1.CancelAsync();
-                SetProgressValue(0);
+                backgroundWorkerGrayscale.CancelAsync();
+                SetProgressBarValue(0);
             }
             else
             {
-                if (backgroundWorker1.CancellationPending)
+                if (backgroundWorkerGrayscale.CancellationPending)
                     return;
 
-                pictureBox.Image = new Bitmap(initialBitmap);
-                SetProgressValue(0);
+                pictureBox.Image = initialBitmap;
+                SetProgressBarValue(0);
             }
         }
 
@@ -195,11 +165,10 @@ namespace AdaptiveGrayscaleHistogram
             grayscaleToolStripMenuItem.Enabled = false;
             adaptiveToolStripMenuItem.Enabled = false;
 
-            if (backgroundWorker1.IsBusy)
+            if (backgroundWorkerGrayscale.IsBusy)
                 return;
 
-            pictureBox.Image = new Bitmap(initialBitmap);
-            backgroundWorker1.RunWorkerAsync();
+            backgroundWorkerGrayscale.RunWorkerAsync();
         }
     }
 }

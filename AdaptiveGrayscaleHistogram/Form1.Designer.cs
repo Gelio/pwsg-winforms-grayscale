@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.pictureBox = new System.Windows.Forms.PictureBox();
             this.progressBar = new System.Windows.Forms.ProgressBar();
-            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorkerGrayscale = new System.ComponentModel.BackgroundWorker();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.loadImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,13 +61,13 @@
             this.progressBar.Step = 1;
             this.progressBar.TabIndex = 4;
             // 
-            // backgroundWorker1
+            // backgroundWorkerGrayscale
             // 
-            this.backgroundWorker1.WorkerReportsProgress = true;
-            this.backgroundWorker1.WorkerSupportsCancellation = true;
-            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork_1);
-            this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged_1);
-            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted_1);
+            this.backgroundWorkerGrayscale.WorkerReportsProgress = true;
+            this.backgroundWorkerGrayscale.WorkerSupportsCancellation = true;
+            this.backgroundWorkerGrayscale.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerGrayscale_DoWork);
+            this.backgroundWorkerGrayscale.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorkerGrayscale_ProgressChanged);
+            this.backgroundWorkerGrayscale.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerGrayscale_RunWorkerCompleted);
             // 
             // contextMenuStrip1
             // 
@@ -91,7 +91,7 @@
             // 
             this.resetToolStripMenuItem.Enabled = false;
             this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.resetToolStripMenuItem.Text = "Reset";
             this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click_1);
             // 
@@ -99,7 +99,7 @@
             // 
             this.grayscaleToolStripMenuItem.Enabled = false;
             this.grayscaleToolStripMenuItem.Name = "grayscaleToolStripMenuItem";
-            this.grayscaleToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.grayscaleToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.grayscaleToolStripMenuItem.Text = "Grayscale";
             this.grayscaleToolStripMenuItem.Click += new System.EventHandler(this.grayscaleToolStripMenuItem_Click);
             // 
@@ -107,14 +107,14 @@
             // 
             this.adaptiveToolStripMenuItem.Enabled = false;
             this.adaptiveToolStripMenuItem.Name = "adaptiveToolStripMenuItem";
-            this.adaptiveToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.adaptiveToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.adaptiveToolStripMenuItem.Text = "Adaptive";
             // 
             // histogramToolStripMenuItem
             // 
             this.histogramToolStripMenuItem.Enabled = false;
             this.histogramToolStripMenuItem.Name = "histogramToolStripMenuItem";
-            this.histogramToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.histogramToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
             this.histogramToolStripMenuItem.Text = "Histogram";
             // 
             // Form1
@@ -136,7 +136,7 @@
         #endregion
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.ProgressBar progressBar;
-        private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerGrayscale;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem loadImageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
