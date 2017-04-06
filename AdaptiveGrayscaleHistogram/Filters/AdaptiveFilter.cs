@@ -33,6 +33,10 @@ namespace AdaptiveGrayscaleHistogram.Filters
             _height = height;
 
             byte[] initialBitmapBytes = bitmapBytes.Clone() as byte[];
+            int totalWidthChanges = (int)(Math.Log(width) / Math.Log(2)),
+                totalHeightChanges = (int)(Math.Log(height) / Math.Log(2));
+            int widthChanges = 0,
+                heightChanges = 0;
 
             Rectangle rect = new Rectangle(0, 0, width, height);
 
@@ -78,9 +82,19 @@ namespace AdaptiveGrayscaleHistogram.Filters
                     }
                 }
 
-                rect.Width = Math.Max(rect.Width / 2, 1);
-                rect.Height = Math.Max(rect.Height / 2, 1);
-                reportProgress(0);
+                if (rect.Width > 1)
+                {
+                    rect.Width /= 2;
+                    widthChanges++;
+                }
+                if (rect.Height > 1)
+                {
+                    rect.Height /= 2;
+                    heightChanges++;
+                }
+
+                double progress = ((double)widthChanges / totalWidthChanges) + ((double)heightChanges / totalHeightChanges);
+                reportProgress((int)(progress * 50));
             }
         }
 
