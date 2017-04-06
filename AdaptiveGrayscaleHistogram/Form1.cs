@@ -16,11 +16,18 @@ namespace AdaptiveGrayscaleHistogram
     public partial class Form1 : Form
     {
         private Bitmap initialBitmap = null;
+        private Histogram histogram = new Histogram();
         
 
         public Form1()
         {
             InitializeComponent();
+            histogram.ValueChanged += Histogram_ValueChanged;
+        }
+
+        private void Histogram_ValueChanged(object sender, Tuple<int, int> e)
+        {
+            MessageBox.Show("Value changed");
         }
 
         private void backgroundWorkerGrayscale_DoWork(object sender, DoWorkEventArgs e)
@@ -169,6 +176,16 @@ namespace AdaptiveGrayscaleHistogram
                 return;
 
             backgroundWorkerGrayscale.RunWorkerAsync();
+        }
+
+        private void histogramToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            histogram.ShowDialog();
+        }
+
+        private void adaptiveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
