@@ -43,27 +43,22 @@ namespace AdaptiveGrayscaleHistogram
             Rectangle rect = new Rectangle(0, 0, width, height);
             byte[] bitmapBytes = GrayscaleHelpers.Array1DFromBitmap(buffers[0]);
             int bytesPerPixel = Bitmap.GetPixelFormatSize(buffers[0].PixelFormat) / 8;
-            int currentPixelPosition = 0;
 
-            for (int y = 0; y < height; y++)
+            Func<bool> shouldCancel = () =>
+            {
+                if (backgroundWorkerGrayscale.CancellationPending)
+                {
+                    e.Cancel = true;
+                    return true;
+                }
+
+                return false;
+            };
+
+            Action<int> reportWorkerProgress = progress =>
             {
                 // Move to the next buffer
                 currentBuffer = (currentBuffer + 1) % buffersCount;
-
-                for (int x = 0; x < width; x++, currentPixelPosition += bytesPerPixel)
-                {
-                    if (backgroundWorkerGrayscale.CancellationPending)
-                    {
-                        e.Cancel = true;
-                        return;
-                    }
-
-                    
-                    byte grayscaleColor = GrayscaleHelpers.GetGrayscaleColor(bitmapBytes[currentPixelPosition], bitmapBytes[currentPixelPosition + 1], bitmapBytes[currentPixelPosition + 2]);
-                    bitmapBytes[currentPixelPosition] = grayscaleColor;
-                    bitmapBytes[currentPixelPosition + 1] = grayscaleColor;
-                    bitmapBytes[currentPixelPosition + 2] = grayscaleColor;
-                }
 
                 // Lock bits
                 BitmapData currentBitmapData = buffers[currentBuffer].LockBits(rect, ImageLockMode.ReadWrite, buffers[currentBuffer].PixelFormat);
@@ -73,12 +68,12 @@ namespace AdaptiveGrayscaleHistogram
 
                 // Unlock bits
                 buffers[currentBuffer].UnlockBits(currentBitmapData);
-                
 
-                int progress = Convert.ToInt32((double)((double)(y + 1) * 100 / (double)height));
                 backgroundWorkerGrayscale.ReportProgress(progress, buffers[currentBuffer]);
-                Thread.Sleep(1);
-            }
+                Thread.Sleep(5);
+            };
+
+            GrayscaleHelpers.ApplyGrayscale(buffers, bitmapBytes, bytesPerPixel, width, height, reportWorkerProgress, shouldCancel);
 
             e.Result = buffers[currentBuffer];
         }
