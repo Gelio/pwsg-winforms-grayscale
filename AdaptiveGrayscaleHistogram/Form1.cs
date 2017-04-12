@@ -140,11 +140,12 @@ namespace AdaptiveGrayscaleHistogram
             if (backgroundWorkerGrayscale.IsBusy)
                 backgroundWorkerGrayscale.CancelAsync();
 
-            OpenFileDialog selectFile = new OpenFileDialog();
-            if (selectFile.ShowDialog() == DialogResult.Cancel)
+            OpenFileDialog selctFileDialog = new OpenFileDialog();
+            selctFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.jpe, *.jfif, *.png, *.bmp) | *.jpg; *.jpeg; *.jpe; *.jfif; *.png; *.bmp |All files (*.*) | *.*";
+            if (selctFileDialog.ShowDialog() == DialogResult.Cancel)
                 return;
 
-            using (Stream imageStream = selectFile.OpenFile())
+            using (Stream imageStream = selctFileDialog.OpenFile())
             {
                 try
                 {
@@ -163,8 +164,12 @@ namespace AdaptiveGrayscaleHistogram
             grayscaleToolStripMenuItem.Enabled = true;
             adaptiveToolStripMenuItem.Enabled = true;
             histogramToolStripMenuItem.Enabled = true;
-            this.MaximumSize = initialBitmap.Size;
-            this.Size = initialBitmap.Size;
+            pictureBox.MaximumSize = initialBitmap.Size;
+            pictureBox.Size = initialBitmap.Size;
+
+            Size windowSize = new Size(initialBitmap.Size.Width + 20, initialBitmap.Size.Height + progressBar.Height + 40);
+            this.MaximumSize = windowSize;
+            this.Size = windowSize;
         }
 
         private void resetToolStripMenuItem_Click_1(object sender, EventArgs e)
