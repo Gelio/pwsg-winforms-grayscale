@@ -40,8 +40,10 @@ namespace AdaptiveGrayscaleHistogram.Filters
 
             Rectangle rect = new Rectangle(0, 0, width, height);
 
+            bool isFinished = false;
+
             // Check if the rectangle is not a single pixel
-            while (rect.Width > 1 || rect.Height > 1)
+            while (!isFinished)
             {
                 for (rect.X = 0; rect.X < width; rect.X += rect.Width)
                 {
@@ -81,6 +83,10 @@ namespace AdaptiveGrayscaleHistogram.Filters
                         }
                     }
                 }
+
+                
+                if (rect.Width == 1 && rect.Height == 1)
+                    isFinished = true;
 
                 if (rect.Width > 1)
                 {
