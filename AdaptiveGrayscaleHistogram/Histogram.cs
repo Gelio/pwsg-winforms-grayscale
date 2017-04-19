@@ -35,6 +35,18 @@ namespace AdaptiveGrayscaleHistogram
         {
             byte minValue = Convert.ToByte(trackBarBottomValue.Value),
                 maxValue = Convert.ToByte(trackBarTopValue.Value);
+
+            if (sender == trackBarBottomValue && minValue > maxValue)
+            {
+                trackBarBottomValue.Value = maxValue;
+                return;
+            }
+            else if (sender == trackBarTopValue && minValue > maxValue)
+            {
+                trackBarTopValue.Value = minValue;
+                return;
+            }
+
             this.ValueChanged?.Invoke(this, new HistogramValues(minValue, maxValue));
         }
     }
